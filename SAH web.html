@@ -1,0 +1,606 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>FoodKart — Food E-Commerce Demo</title>
+  <meta name="description" content="FoodKart — demo food e-commerce single-page app with registration, login, wishlist, orders, reviews, and customer care."/>
+  <style>
+    /* --- Colorful food-themed styles --- */
+    :root{
+      --bg1: #FFF7E6;
+      --bg2: #FFF0F5;
+      --accent: #ff6f3c;
+      --accent2: #ffd166;
+      --muted: #666;
+      --card: #ffffff;
+      --glass: rgba(255,255,255,0.6);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: linear-gradient(135deg,var(--bg1),var(--bg2));
+      color:#222;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+    }
+    header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:14px 20px;
+      background: linear-gradient(90deg, rgba(255,111,60,0.12), rgba(255,209,102,0.12));
+      backdrop-filter: blur(6px);
+      border-bottom: 1px solid rgba(0,0,0,0.04);
+      position:sticky;
+      top:0;
+      z-index:10;
+    }
+    .brand{
+      display:flex;gap:12px;align-items:center;font-weight:800;font-size:20px;
+    }
+    .brand .logo{
+      width:48px;height:48px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+      font-size:24px;background:linear-gradient(135deg,var(--accent),#ff9a76);color:#fff;box-shadow:0 6px 18px rgba(255,111,60,0.14);
+    }
+    nav{display:flex;gap:8px;align-items:center}
+    nav a{padding:8px 12px;border-radius:10px;text-decoration:none;color:#222;font-weight:600}
+    nav a.active{background:linear-gradient(90deg,var(--accent2),#ffd9b3);box-shadow:0 6px 12px rgba(0,0,0,0.04)}
+    .nav-right{display:flex;align-items:center;gap:8px}
+    .btn{border:0;padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:700}
+    .btn-primary{background:linear-gradient(90deg,var(--accent),#ff8a5b);color:#fff}
+    .btn-ghost{background:transparent;border:1px solid rgba(0,0,0,0.06)}
+    main{padding:20px;flex:1;max-width:1200px;margin:20px auto;width:95%}
+    .hero{display:flex;gap:18px;align-items:center;margin-bottom:18px}
+    .hero .left{flex:1}
+    .hero .right{width:320px}
+    .card{background:var(--card);border-radius:12px;padding:14px;box-shadow:0 8px 30px rgba(15,15,15,0.06)}
+    .grid{display:grid;gap:14px}
+    .products-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+    .product{border-radius:12px;overflow:hidden;border:1px solid rgba(0,0,0,0.04);display:flex;flex-direction:column;justify-content:space-between}
+    .product .meta{padding:12px}
+    .product .img{height:140px;background:linear-gradient(135deg,#fff6f2,#fffaf0);display:flex;align-items:center;justify-content:center;font-size:32px}
+    .small{font-size:13px;color:var(--muted)}
+    input, textarea, select{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(0,0,0,0.08);margin-top:6px}
+    label{font-weight:600;font-size:14px}
+    .flex{display:flex;gap:8px;align-items:center}
+    .chips{display:flex;gap:8px;flex-wrap:wrap}
+    .chip{background:linear-gradient(90deg,#fff7f2,#fffdf7);padding:8px 10px;border-radius:999px;border:1px solid rgba(0,0,0,0.04);font-weight:700}
+    footer{padding:20px;text-align:center;color:var(--muted);font-size:14px}
+    /* modal */
+    .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;z-index:50}
+    .modal{width:420px;max-width:94%;padding:18px;border-radius:12px}
+    .row{display:flex;gap:10px}
+    .row .col{flex:1}
+    .center{display:flex;align-items:center;justify-content:center}
+    .list{max-height:260px;overflow:auto;padding-right:6px}
+    .star{color:#ffb400;margin-right:4px}
+    .muted{color:var(--muted)}
+    /* responsive */
+    @media (max-width:880px){
+      .hero{flex-direction:column}
+      .hero .right{width:100%}
+      nav{display:none}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="logo">🍲</div>
+      <div>
+        <div style="font-size:14px;color:var(--muted)">Fresh • Tasty • Local</div>
+        <div>FoodKart</div>
+      </div>
+    </div>
+
+    <nav id="main-nav">
+      <a href="#home" data-route class="active">Home</a>
+      <a href="#products" data-route>Products</a>
+      <a href="#orders" data-route>Orders</a>
+      <a href="#wishlist" data-route>Wishlist</a>
+      <a href="#contact" data-route>Contact Us</a>
+      <a href="#about" data-route>About Us</a>
+    </nav>
+
+    <div class="nav-right">
+      <div id="user-info" class="small muted">Not logged in</div>
+      <button id="btn-login" class="btn">Login</button>
+      <button id="btn-register" class="btn btn-primary">Register</button>
+    </div>
+  </header>
+
+  <main id="app">
+    <!-- content injected by JS -->
+  </main>
+
+  <div id="modal-root" style="display:none"></div>
+
+  <footer>
+    © <span id="year"></span> FoodKart — Demo food e-commerce. Data stored locally in your browser (localStorage).
+  </footer>
+
+  <script>
+    /* ---------- App data & persistence ---------- */
+    const STORAGE_KEY = 'foodkart_v1';
+    // default demo products (food items)
+    const DEFAULT_PRODUCTS = [
+      {id:1, name:'Classic Margherita Pizza', price:299, desc:'Wood-fired pizza with fresh basil', category:'Pizza', emoji:'🍕'},
+      {id:2, name:'Paneer Tikka Wrap', price:179, desc:'Spiced paneer, mint chutney, soft wrap', category:'Wraps', emoji:'🌯'},
+      {id:3, name:'Veg Thali', price:249, desc:'Balanced veg meal with rice and 2 curries', category:'Meals', emoji:'🍛'},
+      {id:4, name:'Gourmet Burger', price:229, desc:'Veg patty, cheese, house sauce', category:'Burgers', emoji:'🍔'},
+      {id:5, name:'Falafel Salad Bowl', price:199, desc:'Crispy falafel with greens & tahini', category:'Salads', emoji:'🥗'},
+      {id:6, name:'Chocolate Brownie', price:99, desc:'Warm brownie with nuts', category:'Desserts', emoji:'🍫'}
+    ];
+
+    // Load or initialize storage
+    function loadState(){
+      const s = localStorage.getItem(STORAGE_KEY);
+      if (!s) {
+        const init = {
+          users: [],
+          currentUser: null,
+          products: DEFAULT_PRODUCTS,
+          wishlist: [], // {id, userEmail, productId, date}
+          orders: [],   // {id, userEmail, productId, qty, date, status}
+          reviews: [],  // {id, userEmail, productId, rating, comment, date}
+          reports: []   // {id, userEmail, subject, message, date}
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(init));
+        return init;
+      }
+      try { return JSON.parse(s); } catch(e){ localStorage.removeItem(STORAGE_KEY); return loadState(); }
+    }
+    function saveState(state){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+    let state = loadState();
+
+    /* ---------- UI helpers ---------- */
+    const app = document.getElementById('app');
+    const modalRoot = document.getElementById('modal-root');
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    function setActiveNav(hash){
+      document.querySelectorAll('#main-nav a').forEach(a => {
+        a.classList.toggle('active', a.getAttribute('href') === '#' + hash);
+      });
+    }
+    function showToast(msg){ alert(msg); } // simple
+
+    function formatCurrency(n){ return '₹ ' + n.toFixed(0); }
+    function nowISO(){ return new Date().toISOString(); }
+    function uid(){ return Math.random().toString(36).slice(2,9); }
+
+    /* ---------- Authentication & Validation ---------- */
+    function validateEmail(email){ return /^\S+@\S+\.\S+$/.test(email); }
+    function validatePassword(p){ return p && p.length >= 6; }
+    function validateName(n){ return n && n.trim().length >= 2; }
+
+    function getCurrentUser(){ return state.currentUser; }
+    function setCurrentUser(user){
+      state.currentUser = user ? { email: user.email, name: user.name } : null;
+      saveState(state);
+      updateHeader();
+    }
+    function updateHeader(){
+      const info = document.getElementById('user-info');
+      if (state.currentUser){ info.textContent = state.currentUser.name + ' (' + state.currentUser.email + ')'; }
+      else info.textContent = 'Not logged in';
+    }
+
+    /* ---------- Modal system ---------- */
+    function openModal(html){
+      modalRoot.innerHTML = '';
+      modalRoot.style.display = 'block';
+      const bg = document.createElement('div');
+      bg.className = 'modal-bg';
+      bg.innerHTML = `<div class="card modal">${html}</div>`;
+      bg.addEventListener('click', e => { if (e.target === bg) closeModal(); });
+      modalRoot.appendChild(bg);
+    }
+    function closeModal(){
+      modalRoot.innerHTML = '';
+      modalRoot.style.display = 'none';
+    }
+
+    /* ---------- Pages ---------- */
+    function renderHome(){
+      setActiveNav('home');
+      app.innerHTML = `
+        <div class="hero" style="gap:18px">
+          <div class="left card">
+            <h1 style="margin:0 0 6px">Fresh & Delicious Food — Delivered Fast</h1>
+            <p class="muted">FoodKart brings local flavours to your doorstep. Explore our menu, add favourites to wishlist, place orders and leave reviews.</p>
+            <div style="margin-top:12px" class="chips">
+              <div class="chip">Free delivery over ₹299</div>
+              <div class="chip">Contactless delivery</div>
+              <div class="chip">Local & Fresh</div>
+            </div>
+            <div style="margin-top:12px" class="row">
+              <div class="col"><button class="btn btn-primary" onclick="navigateTo('products')">Browse Menu</button></div>
+              <div class="col"><button class="btn btn-ghost" onclick="navigateTo('orders')">My Orders</button></div>
+            </div>
+          </div>
+          <div class="right card center">
+            <div style="text-align:center">
+              <div style="font-size:48px">🍽️</div>
+              <div class="small muted">Hungry? Try today’s top picks</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:10px">
+          <h3 style="margin-top:0">Top Categories</h3>
+          <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));margin-top:10px">
+            <div class="center card"><div style="font-size:28px">🍕</div><div class="small">Pizza</div></div>
+            <div class="center card"><div style="font-size:28px">🌯</div><div class="small">Wraps</div></div>
+            <div class="center card"><div style="font-size:28px">🍛</div><div class="small">Meals</div></div>
+            <div class="center card"><div style="font-size:28px">🥗</div><div class="small">Salads</div></div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderProducts(){
+      setActiveNav('products');
+      const products = state.products;
+      app.innerHTML = `
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <h2 style="margin:0">Menu</h2>
+            <div class="small muted">Total items: ${products.length}</div>
+          </div>
+          <div class="products-grid" style="margin-top:12px">
+            ${products.map(p=>`
+              <div class="product">
+                <div class="img">${p.emoji}</div>
+                <div class="meta">
+                  <div style="display:flex;justify-content:space-between;align-items:center">
+                    <div><strong>${p.name}</strong><div class="small muted">${p.category}</div></div>
+                    <div style="text-align:right"><div style="font-weight:800">${formatCurrency(p.price)}</div></div>
+                  </div>
+                  <p class="small" style="margin-top:10px">${p.desc}</p>
+                </div>
+                <div style="padding:12px;display:flex;gap:8px">
+                  <button class="btn" onclick="addToWishlist(${p.id})">➕ Wishlist</button>
+                  <button class="btn btn-primary" onclick="placeOrder(${p.id})">🛒 Order</button>
+                  <button class="btn" onclick="openReviewModal(${p.id})">✍️ Review</button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:12px">
+          <h3 style="margin:0 0 8px">Recent Reviews</h3>
+          <div class="list">
+            ${state.reviews.slice().reverse().map(r=>`
+              <div style="padding:10px;border-bottom:1px dashed rgba(0,0,0,0.04)">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <div><strong>${r.userName || r.userEmail}</strong> <span class="small muted">on ${getProductName(r.productId)}</span></div>
+                  <div>${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div>
+                </div>
+                <div class="small muted" style="margin-top:6px">${r.comment}</div>
+              </div>
+            `).join('') || '<div class="small muted">No reviews yet — be the first!</div>'}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderOrders(){
+      setActiveNav('orders');
+      const user = getCurrentUser();
+      if (!user){
+        app.innerHTML = `<div class="card"><h3>Please login to view orders</h3></div>`; return;
+      }
+      const orders = state.orders.filter(o => o.userEmail === user.email);
+      app.innerHTML = `
+        <div class="card">
+          <h2 style="margin:0">My Orders</h2>
+          <div class="small muted" style="margin-top:6px">You have ${orders.length} orders</div>
+          <div class="list" style="margin-top:12px">
+            ${orders.map(o=>`
+              <div style="padding:10px;border-bottom:1px dashed rgba(0,0,0,0.04);display:flex;justify-content:space-between;align-items:center">
+                <div>
+                  <div><strong>${getProductName(o.productId)}</strong> <span class="small muted">x${o.qty}</span></div>
+                  <div class="small muted">${new Date(o.date).toLocaleString()}</div>
+                </div>
+                <div style="text-align:right">
+                  <div style="font-weight:800">${formatCurrency(getProductPrice(o.productId) * o.qty)}</div>
+                  <div class="small muted">${o.status}</div>
+                </div>
+              </div>
+            `).join('') || '<div class="small muted">No orders yet — order something delicious!</div>'}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderWishlist(){
+      setActiveNav('wishlist');
+      const user = getCurrentUser();
+      if (!user){
+        app.innerHTML = `<div class="card"><h3>Please login to view wishlist</h3></div>`; return;
+      }
+      const items = state.wishlist.filter(w => w.userEmail === user.email);
+      app.innerHTML = `
+        <div class="card">
+          <h2 style="margin:0">My Wishlist</h2>
+          <div class="list" style="margin-top:12px">
+            ${items.map(i=>`
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;border-bottom:1px dashed rgba(0,0,0,0.04)">
+                <div><strong>${getProductName(i.productId)}</strong><div class="small muted">${new Date(i.date).toLocaleString()}</div></div>
+                <div style="display:flex;gap:8px">
+                  <button class="btn" onclick="removeFromWishlist('${i.id}')">Remove</button>
+                  <button class="btn btn-primary" onclick="placeOrder(${i.productId})">Order</button>
+                </div>
+              </div>
+            `).join('') || '<div class="small muted">Wishlist empty — add items from the menu.</div>'}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderContact(){
+      setActiveNav('contact');
+      app.innerHTML = `
+        <div class="card">
+          <h2 style="margin:0 0 8px">Customer Care & Reports</h2>
+          <div class="small muted">Tell us about an issue or ask a question — we respond quickly.</div>
+          <div style="margin-top:12px">
+            <label>Subject</label>
+            <input id="report-sub" placeholder="e.g. late delivery, wrong item">
+            <label style="margin-top:8px">Message</label>
+            <textarea id="report-msg" rows="4" placeholder="Write your message"></textarea>
+            <div style="display:flex;gap:8px;margin-top:10px">
+              <button class="btn btn-primary" onclick="submitReport()">Send Report</button>
+              <button class="btn" onclick="navigateTo('home')">Cancel</button>
+            </div>
+          </div>
+          <hr style="margin:16px 0">
+          <h3 style="margin:0 0 8px">Previous Reports</h3>
+          <div class="list" style="margin-top:8px">
+            ${state.reports.slice().reverse().map(r=>`
+              <div style="padding:10px;border-bottom:1px dashed rgba(0,0,0,0.04)">
+                <div style="display:flex;justify-content:space-between"><div><strong>${r.subject}</strong><div class="small muted">${r.userEmail||'Guest'}</div></div><div class="small muted">${new Date(r.date).toLocaleString()}</div></div>
+                <div class="small" style="margin-top:6px">${r.message}</div>
+              </div>
+            `).join('') || '<div class="small muted">No reports submitted.</div>'}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderAbout(){
+      setActiveNav('about');
+      app.innerHTML = `
+        <div class="card">
+          <h2 style="margin:0">About FoodKart</h2>
+          <p class="muted">FoodKart is a demo food e-commerce portal built to demonstrate navigation, validated registration/login, orders, wishlist, reviews, and customer care flows — all in a single page app.</p>
+          <p class="muted">This sandbox stores everything in your browser (localStorage). For production, use a secure backend, database, and payment integration.</p>
+        </div>
+      `;
+    }
+
+    /* ---------- Utilities ---------- */
+    function getProductName(id){ const p = state.products.find(x=>x.id===id); return p ? p.name : 'Unknown'; }
+    function getProductPrice(id){ const p = state.products.find(x=>x.id===id); return p ? p.price : 0; }
+
+    /* ---------- Actions ---------- */
+    function navigateTo(hash){ location.hash = '#' + hash; }
+
+    function addToWishlist(productId){
+      const user = getCurrentUser();
+      if (!user) { openLoginModal('Please login to add to wishlist'); return; }
+      // prevent duplicates
+      if (state.wishlist.some(w => w.userEmail === user.email && w.productId === productId)){
+        showToast('Already in wishlist');
+        return;
+      }
+      const item = { id: uid(), userEmail: user.email, productId, date: nowISO() };
+      state.wishlist.push(item); saveState(state); showToast('Added to wishlist'); navigateTo('wishlist');
+    }
+
+    function removeFromWishlist(itemId){
+      state.wishlist = state.wishlist.filter(i => i.id !== itemId);
+      saveState(state); renderWishlist();
+    }
+
+    function placeOrder(productId, qty=1){
+      const user = getCurrentUser();
+      if (!user) { openLoginModal('Please login to place an order'); return; }
+      const order = { id: uid(), userEmail: user.email, productId, qty, date: nowISO(), status: 'Received' };
+      state.orders.push(order); saveState(state); showToast('Order placed — check Orders'); navigateTo('orders');
+    }
+
+    function openReviewModal(productId){
+      const user = getCurrentUser();
+      if (!user) { openLoginModal('Please login to leave a review'); return; }
+      const product = getProductName(productId);
+      openModal(`
+        <h3>Review: ${product}</h3>
+        <label>Rating (1-5)</label>
+        <select id="rev-rating"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select>
+        <label style="margin-top:8px">Comment</label>
+        <textarea id="rev-comment" rows="4"></textarea>
+        <div style="display:flex;justify-content:flex-end;margin-top:10px">
+          <button onclick="closeModal()" style="margin-right:8px">Cancel</button>
+          <button class="btn btn-primary" onclick="submitReview(${productId})">Submit</button>
+        </div>
+      `);
+    }
+
+    function submitReview(productId){
+      const rating = parseInt(document.getElementById('rev-rating').value);
+      const comment = document.getElementById('rev-comment').value.trim();
+      if (!rating || comment.length < 2) return alert('Please provide rating and comment (min 2 chars)');
+      const user = getCurrentUser();
+      state.reviews.push({ id: uid(), userEmail: user.email, userName: user.name, productId, rating, comment, date: nowISO() });
+      saveState(state); closeModal(); showToast('Thanks for your review'); navigateTo('products');
+    }
+
+    function submitReport(){
+      const subj = document.getElementById('report-sub').value.trim();
+      const msg = document.getElementById('report-msg').value.trim();
+      if (!subj || !msg) return alert('Please fill both subject and message');
+      state.reports.push({ id: uid(), userEmail: (state.currentUser && state.currentUser.email) || null, subject: subj, message: msg, date: nowISO() });
+      saveState(state); showToast('Report submitted — our team will contact you'); document.getElementById('report-sub').value=''; document.getElementById('report-msg').value='';
+      renderContact();
+    }
+
+    /* ---------- Auth modals ---------- */
+    function openLoginModal(message){
+      openModal(`
+        <h3>Login</h3>
+        ${message ? `<div class="small muted">${message}</div>` : ''}
+        <label style="margin-top:8px">Email</label>
+        <input id="login-email" type="email" placeholder="you@example.com">
+        <label style="margin-top:8px">Password</label>
+        <input id="login-pass" type="password" placeholder="min 6 chars">
+        <div style="display:flex;justify-content:space-between;margin-top:12px">
+          <button onclick="closeModal()">Cancel</button>
+          <div style="display:flex;gap:8px">
+            <button onclick="openRegisterFromLogin()">Register</button>
+            <button class="btn btn-primary" onclick="doLogin()">Login</button>
+          </div>
+        </div>
+      `);
+    }
+
+    function openRegisterFromLogin(){
+      closeModal(); openRegisterModal();
+    }
+
+    function openRegisterModal(){
+      openModal(`
+        <h3>Create Account</h3>
+        <label style="margin-top:8px">Full name</label>
+        <input id="reg-name" placeholder="Your name">
+        <label style="margin-top:8px">Email</label>
+        <input id="reg-email" type="email" placeholder="you@example.com">
+        <label style="margin-top:8px">Password</label>
+        <input id="reg-pass" type="password" placeholder="min 6 chars">
+        <div style="display:flex;justify-content:space-between;margin-top:12px">
+          <button onclick="closeModal()">Cancel</button>
+          <div style="display:flex;gap:8px">
+            <button onclick="closeModal()">Already have an account</button>
+            <button class="btn btn-primary" onclick="doRegister()">Register</button>
+          </div>
+        </div>
+      `);
+    }
+
+    function doRegister(){
+      const name = document.getElementById('reg-name').value.trim();
+      const email = document.getElementById('reg-email').value.trim().toLowerCase();
+      const pass = document.getElementById('reg-pass').value;
+      const errs = [];
+      if (!validateName(name)) errs.push('Name at least 2 characters');
+      if (!validateEmail(email)) errs.push('Valid email required');
+      if (!validatePassword(pass)) errs.push('Password min 6 characters');
+      if (errs.length){ return alert('Errors:\n' + errs.join('\n')); }
+      // unique user by email
+      if (state.users.some(u => u.email === email)) return alert('Email already registered. Please login.');
+      state.users.push({ email, name, password: pass });
+      saveState(state);
+      setCurrentUser({ email, name });
+      closeModal();
+      showToast('Registered and logged in as ' + name);
+      navigateTo('products');
+    }
+
+    function doLogin(){
+      const email = document.getElementById('login-email').value.trim().toLowerCase();
+      const pass = document.getElementById('login-pass').value;
+      if (!validateEmail(email) || !validatePassword(pass)) return alert('Please enter valid credentials');
+      const found = state.users.find(u => u.email === email && u.password === pass);
+      if (!found) return alert('Invalid credentials or user not registered');
+      setCurrentUser(found);
+      closeModal();
+      showToast('Welcome back, ' + found.name);
+      navigateTo('products');
+    }
+
+    /* ---------- Header actions ---------- */
+    document.getElementById('btn-login').addEventListener('click', () => openLoginModal());
+    document.getElementById('btn-register').addEventListener('click', () => openRegisterModal());
+    document.querySelectorAll('[data-route]').forEach(a => a.addEventListener('click', (e) => {
+      e.preventDefault(); const h = a.getAttribute('href').slice(1); location.hash = h;
+    }));
+
+    /* ---------- Routing ---------- */
+    function route(){
+      const hash = location.hash.slice(1) || 'home';
+      switch(hash){
+        case 'home': renderHome(); break;
+        case 'products': renderProducts(); break;
+        case 'orders': renderOrders(); break;
+        case 'wishlist': renderWishlist(); break;
+        case 'contact': renderContact(); break;
+        case 'about': renderAbout(); break;
+        default: renderHome();
+      }
+      updateHeader();
+      setActiveNav(hash);
+    }
+    window.addEventListener('hashchange', route);
+    route();
+
+    /* ---------- Init ---------- */
+    updateHeader();
+
+    /* ---------- Extra: Export & Reset ---------- */
+    // Optional helpers exposed globally for testing
+    window.FoodKart = {
+      exportData: () => { const data = JSON.stringify(state, null, 2); const blob = new Blob([data], {type:'application/json'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'foodkart-data.json'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url); },
+      resetData: () => { if (!confirm('Reset demo data?')) return; localStorage.removeItem(STORAGE_KEY); state = loadState(); route(); showToast('Data reset'); }
+    };
+
+    /* ---------- Utility: Show login if not logged when accessing orders/wishlist via nav direct ---------- */
+    // intercept navigation to protected pages
+    window.addEventListener('hashchange', () => {
+      const protectedPages = ['orders','wishlist'];
+      const hash = location.hash.slice(1);
+      if (protectedPages.includes(hash) && !state.currentUser){
+        // show login and stay on home
+        openLoginModal('Please login to view this page');
+        location.hash = 'home';
+      }
+    });
+
+  </script>
+
+  <!-- README / GitHub instructions -->
+  <!--
+    To upload this project to GitHub:
+
+    1. Create a new folder (e.g. foodkart) and save this file as index.html inside that folder.
+    2. From the folder root run:
+       git init
+       git add index.html
+       git commit -m "Initial commit: FoodKart single-file demo"
+    3. Create repository on GitHub (via web UI) named foodkart and then run:
+       git remote add origin https://github.com/<your-username>/foodkart.git
+       git branch -M main
+       git push -u origin main
+
+    Or using GitHub CLI:
+       gh repo create foodkart --public --source=. --remote=origin
+       git push -u origin main
+
+    README content suggestion (create README.md):
+    # FoodKart — Demo single-file food e-commerce
+    Demo single-page food e-commerce application (frontend-only). Save `index.html` and open in browser. Data is stored in localStorage.
+
+    Notes:
+    - For production, build a backend (Node/Express), database, authentication, and payment integration.
+    - This demo persists user data (including plain-text password) in localStorage — DO NOT use in production.
+
+  -->
+</body>
+</html>
